@@ -117,3 +117,21 @@ saves two registers on the stack, the return address and $a0
 
 
 
+/*
+    int sum(int n, int acc) {
+        if (n > 0)
+            return sum(n - 1, acc + n);
+        else
+            return acc;
+    }
+*/
+
+    sum: slti $t0, $a0, 1           # test if n <= 0
+         bne  $to, $zero, sum_exit  # go to sum_exit if n <= 0
+         add  $a1, $a1, $a0         # add n to acc
+         addi $a0, $a0m, -1         # subtract 1 from n
+         j    sum                   # jump to sum
+    sum_exit:
+        add   $v0, $a1, $zero       # return value acc
+        jr    $ra                   # return to caller
+
