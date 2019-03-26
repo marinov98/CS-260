@@ -15,8 +15,11 @@ li $t4,0x000000FF # $t4 <- blue
 # counters
 li $t6,131072 # area of rectangle
 li $t9,0
-la $a0,50
-la $a1,100
+#li $a0,m
+#li $a1,n
+li $t2,0 # t2 gets 0
+li $t5,0 # t3 gets 0
+
 
 fill_yellow:
 sw $t3,0($t1) # fill square
@@ -26,12 +29,13 @@ beq $t9,$t6,reset
 j fill_yellow
 
 
-# resets frame to beginnig
+# resets frame to beginning
 reset:
 subi $t1,$t1,4 # go to previous address
 subi $t9,$t9,1 # decrement by one
 beq $t9,0,rectangle_X 
 j reset 
+# lw $t1, frameBuffer # supposed to reset but doesnt
 
 ## PROBLEMS
 # technically an infinite loop, if X is uncommented Y may never be reached because X runs forever
@@ -40,18 +44,30 @@ j reset
 ## Notes
 # This prints a vertical rectangle (needs a way to go by specifications
 
+
 reroll_X:
 subi $t1,$t1,512 # subtract amount wanted
 addi $t1,$t1,2048 # go to next row
 add $t9,$zero,$zero
+addi $t2,$t2,1
+beq $t2,128,Exit # length of rectangle from bottom
+j make_rectangle
 
 
 rectangle_X:
+
+length_top:
+addi $t1,$t1,2048 # go to next row
+addi $t5,$t5,1 # increment t3 by 1 
+beq  $t5,64,make_rectangle
+j length_top
+
+make_rectangle:
 sw $t4,780($t1)
 addi $t1,$t1,4 # increment adress
 addi $t9,$t9,1 # check how many times address was incremented
 beq $t9,128,reroll_X
-j rectangle_X
+j make_rectangle
 
 ## Notes 
 # This prints a horizontal rectangle needs a way to work with bounds
