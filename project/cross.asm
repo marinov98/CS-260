@@ -21,19 +21,20 @@ beq  $t8,1,fix_n # make n even if it's odd
 j try_next
 
 fix_n:
-addi $a0,$a0,1 # make n even
-j  try_next # test m 
+	addi $a0,$a0,1 # make n even
+	j  try_next # test m 
 
 try_next:
-andi $t8,$a1,1 # AND m and 1
-beq $t8,1,fix_m # make m even if it is odd
-j Program # start the program
+	andi $t8,$a1,1 # AND m and 1
+	beq $t8,1,fix_m # make m even if it is odd
+	j Program # start the program if m is already even
 
 fix_m:
-addi $a1,$a1,1 # make  m even
+	addi $a1,$a1,1 # make  m even
 
 
 Program:
+
 # colors initialization
 li $t3,0x00FFFF00 # $t3 ← yellow  
 li $t4,0x000000FF # $t4 <- blue
@@ -83,7 +84,8 @@ reset1:
 	add $s0,$zero,$zero # s0 <- 0
 	sll $t6,$s2,2  # t6 <- 2048
 
-##### VERTICAL Rectangle
+############## VERTICAL Rectangle
+
 rectangle_X:
 	sll $s7,$s7, 11  # multiply (256 - (2m + n)/2 by 2^11 
 	add $t1,$t1,$s7 # go to starting row
@@ -105,9 +107,11 @@ next_row:
 	addi  $t1,$t1,2048 # go to next row
 	add $t7,$zero,$zero # t7 is reset
 	j   fill_in_row
-#############
+	
+#####################################
 
-## HORIZONTAL rectangle
+################ HORIZONTAL rectangle
+
 reset2:
 	add $t1,$s1,$zero
 	# set all registers used before to 0
@@ -140,7 +144,8 @@ nextrow:
 	addi $t1,$t1,2048 # go to next row
 	add $t7,$zero,$zero # t7 <- 0
 	j fillrow # start filling the row 
-
+	
+##########################
 
 Exit:
 li $v0,10
