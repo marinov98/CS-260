@@ -9,28 +9,28 @@ la $s1,frameBuffer
 add $t1,$s1,$zero # s1 has address of frame
 
 # variable allocation
-la $a0,n
-la $a1,m
+la $a0,n # load address of n
+la $a1,m # load adress of m
 
 lw $a0,0($a0) # a0 <- n
 lw $a1,0($a1) # a1 <- m
 
 # Making sure bounds are even
 andi $t8,$a0,1 # AND n and 1
-beq  $t8,1,fix_n
+beq  $t8,1,fix_n # make n even if it's odd
 j try_next
 
 fix_n:
-addi $a0,$a0,1
-j  try_next
+addi $a0,$a0,1 # make n even
+j  try_next # test m 
 
 try_next:
-andi $t8,$a1,1
-beq $t8,1,fix_m
-j Program
+andi $t8,$a1,1 # AND m and 1
+beq $t8,1,fix_m # make m even if it is odd
+j Program # start the program
 
 fix_m:
-addi $a1,$a1,1
+addi $a1,$a1,1 # make  m even
 
 
 Program:
@@ -69,78 +69,77 @@ li $t7,0
 
 
 fill_yellow:
-sw $t3,0($t1) # fill square
-addi $t1,$t1,4 # increment address by 4
-addi $t9,$t9,1 # increment by 1
-beq $t9,$t6,reset1
-j fill_yellow
+	sw $t3,0($t1) # fill square with yellow
+	addi $t1,$t1,4 # increment address by 4
+	addi $t9,$t9,1 # increment by 1
+	beq $t9,$t6,reset1 # reset once we have filled the screen with yellow pixels
+	j fill_yellow # keep filling
 
 
 # resets frame to beginning
 reset1:
-add $t1,$s1,$zero # start from beginning
-add $t9,$zero,$zero # set all registers used before to 0
-add $s0,$zero,$zero # s0 <- 0
-sll $t6,$s2,2  # t6 <- 2048
+	add $t1,$s1,$zero # start from beginning
+	add $t9,$zero,$zero # set all registers used before to 0
+	add $s0,$zero,$zero # s0 <- 0
+	sll $t6,$s2,2  # t6 <- 2048
 
 ##### VERTICAL Rectangle
 rectangle_X:
-sll $s7,$s7, 11  # multiply (256 - (2m + n)/2 by 2^11 
-add $t1,$t1,$s7 # go to starting row
-sll $t5,$t2,2 # t5 <- 4(256 - n/2)
-add $t1,$t1,$t5 # go to starting column
+	sll $s7,$s7, 11  # multiply (256 - (2m + n)/2 by 2^11 
+	add $t1,$t1,$s7 # go to starting row
+	sll $t5,$t2,2 # t5 <- 4(256 - n/2)
+	add $t1,$t1,$t5 # go to starting column
 
 
 fill_in_row:
-sw $t4, 0($t1) # store blue
-beq $t7,$a0,next_row  # n length
-addi $t1,$t1,4
-addi $t7,$t7,1
-j fill_in_row
+	beq $t7,$a0,next_row  # when reached length n start filling next row
+	sw $t4, 0($t1) # store blue
+	addi $t1,$t1,4 # increment address
+	addi $t7,$t7,1 # keep track of how many times we've incremented the address
+	j fill_in_row 
 
 next_row:
-beq $s0,$s5,reset2 # if s0 = 2m + n go make the next rectangle
-addi $s0,$s0,1
-sub  $t1,$t1,$t0
-addi  $t1,$t1,2048 # go to next row
-add $t7,$zero,$zero # t7 is reset
-j   fill_in_row
+	beq $s0,$s5,reset2 # if s0 = 2m + n go make the next rectangle
+	addi $s0,$s0,1 # check how many times we have filled in a column
+	sub  $t1,$t1,$t0 # subtract offset
+	addi  $t1,$t1,2048 # go to next row
+	add $t7,$zero,$zero # t7 is reset
+	j   fill_in_row
 #############
 
 ## HORIZONTAL rectangle
 reset2:
-add $t1,$s1,$zero
-# set all registers used before to 0
-add $t7,$zero,$zero # t7 <- 0
-sll $s4,$s4,1 # s4 <- 4m
-add $s0,$zero,$zero # s0 <- 0
-sll $t9,$s5,2 # t9 <- 4n
+	add $t1,$s1,$zero
+	# set all registers used before to 0
+	add $t7,$zero,$zero # t7 <- 0
+	sll $s4,$s4,1 # s4 <- 4m
+	add $s0,$zero,$zero # s0 <- 0
+	sll $t9,$s5,2 # t9 <- 4n
 
 
 rectangle_Y:
-sll $t5,$s6,2 # t5 <- 4(512 - n/2)
-add $t1,$t1,$t5 
-sll $t9,$s4,2 # t9 <- 4m
-#sub $t1,$t1,$t9 # go to starting row 4[(256-n/2) - m]
-sll $t9,$s5,2 # t9 <- 4(2m + n)
-subi $t2,$t2,128 # s3 <- 256 n/2 -128 
-sll $t2,$t2,11
-add $t1,$t1,$t2 # move to proper row
+	sll $t5,$s6,2 # t5 <- 4(512 - n/2)
+	add $t1,$t1,$t5 # go to proper column
+	sll $t9,$s4,2 # t9 <- 4m
+	sll $t9,$s5,2 # t9 <- 4(2m + n)
+	subi $t2,$t2,128 # s3 <- 256 n/2 -128 
+	sll $t2,$t2,11
+	add $t1,$t1,$t2 # move to proper row
 
 fillrow:
-sw $t4, 0($t1)
-beq $t7,$s5,nextrow # when reached 2m + n length got to next row
-addi $t1,$t1,4 # fill current column with blue
-addi $t7,$t7,1 # keep track how many times we have filled a column
-j fillrow
+	beq $t7,$s5,nextrow # when reached 2m + n length got to next row
+	sw $t4, 0($t1) # fill current column with blue until we reach 2m + n
+	addi $t1,$t1,4 # increment address
+	addi $t7,$t7,1 # keep track how many times we have filled a column
+	j fillrow
 
 nextrow:
-beq $s0,$a0,Exit # if done n times exit, we are done
-addi $s0,$s0,1 # check how many times we went to the next row
-sub $t1,$t1,$t9 # subtract the offset
-addi $t1,$t1,2048 # go to next row
-add $t7,$zero,$zero # t7 <- 0
-j fillrow # start filling the row 
+	beq $s0,$a0,Exit # if done n times exit, we are done
+	addi $s0,$s0,1 # check how many times we went to the next row
+	sub $t1,$t1,$t9 # subtract the offset
+	addi $t1,$t1,2048 # go to next row
+	add $t7,$zero,$zero # t7 <- 0
+	j fillrow # start filling the row 
 
 
 Exit:
