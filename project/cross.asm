@@ -61,12 +61,12 @@ srl $s7,$s7,1   # s7 <- (256 - (2m + n)/2
 
 # Checking bounds
 slt $t8,$s3,$s5 # check 2m + n < 256
-beq  $t8,1,Exit
+beq  $t8,1,Exit # Display NOTHING if bounds are too big 
 
 
 # counters
 li $t6,131072 # area of rectangle
-li $t7,0
+li $t7,0 # initialize t7 to 0 
 
 
 fill_yellow:
@@ -98,7 +98,7 @@ fill_in_row:
 	sw $t4, 0($t1) # store blue
 	addi $t1,$t1,4 # increment address
 	addi $t7,$t7,1 # keep track of how many times we've incremented the address
-	j fill_in_row 
+	j fill_in_row # keep filing until proper length is found
 
 next_row:
 	beq $s0,$s5,reset2 # if s0 = 2m + n go make the next rectangle
@@ -106,14 +106,14 @@ next_row:
 	sub  $t1,$t1,$t0 # subtract offset
 	addi  $t1,$t1,2048 # go to next row
 	add $t7,$zero,$zero # t7 is reset
-	j   fill_in_row
+	j   fill_in_row # go back to filling the columns in the row
 	
 #####################################
 
 ################ HORIZONTAL rectangle
 
 reset2:
-	add $t1,$s1,$zero
+	add $t1,$s1,$zero # reset the pointer to point to the beginning of the frame once again
 	# set all registers used before to 0
 	add $t7,$zero,$zero # t7 <- 0
 	sll $s4,$s4,1 # s4 <- 4m
@@ -126,8 +126,8 @@ rectangle_Y:
 	add $t1,$t1,$t5 # go to proper column
 	sll $t9,$s4,2 # t9 <- 4m
 	sll $t9,$s5,2 # t9 <- 4(2m + n)
-	subi $t2,$t2,128 # s3 <- 256 n/2 -128 
-	sll $t2,$t2,11
+	subi $t2,$t2,128 # s3 <- 256 - n/2 -128 
+	sll $t2,$t2,11 # multiply (256- n/2 - 128)2048
 	add $t1,$t1,$t2 # move to proper row
 
 fillrow:
@@ -135,7 +135,7 @@ fillrow:
 	sw $t4, 0($t1) # fill current column with blue until we reach 2m + n
 	addi $t1,$t1,4 # increment address
 	addi $t7,$t7,1 # keep track how many times we have filled a column
-	j fillrow
+	j fillrow # go back to filling the row
 
 nextrow:
 	beq $s0,$a0,Exit # if done n times exit, we are done
@@ -148,7 +148,7 @@ nextrow:
 ##########################
 
 Exit:
-li $v0,10
+li $v0,10 # exit code
 syscall
 
 
